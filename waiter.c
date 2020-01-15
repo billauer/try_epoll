@@ -11,10 +11,13 @@
 
 int main(int argc, char **argv) {
   int pollfd;
+  int fd;
 
-  unlink("fifo_for_test"); // Remove if exists. May fail, don't care.
+  const char *fname = "fifo_for_test";
 
-  if (mkfifo("fifo_for_test", 0666)) {
+  unlink(fname); // Remove if exists. May fail, don't care.
+
+  if (mkfifo(fname, 0666)) {
     perror("mkfifo");
     return 1;
   }
@@ -23,6 +26,16 @@ int main(int argc, char **argv) {
 
   if (pollfd < 0) {
     perror("epoll_create1");
+    return 1;
+  }
+
+  if ((fd = open(fname, O_RDONLY)) < 0) {
+    perror("open FIFO");
+    return 1;
+  }
+
+  if (close(fd)) {
+    perror("While closing FIFO");
     return 1;
   }
 
